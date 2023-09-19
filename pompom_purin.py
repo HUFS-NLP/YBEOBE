@@ -169,6 +169,11 @@ optimizer = Adam(model.parameters(), lr=learning_rate)
 senti_loss_fn = BCEWithLogitsLoss().to(device)
 ner_loss_fn = nn.CrossEntropyLoss().to(device)
 
+# 초기화
+best_dev_f1 = 0.0  # 추가된 부분
+save_model_path = "best_model.pth"  # 추가된 부분
+
+
 # Training Loop
 for epoch in range(epochs):
     model.train()
@@ -208,34 +213,41 @@ for epoch in range(epochs):
     senti_f1_score = f1_score(all_senti_labels, all_senti_preds, average='micro')
     print(f'Epoch {epoch+1}, Senti Loss: {total_senti_loss/len(train_dataloader)}, NER Loss: {total_ner_loss/len(train_dataloader)}, Senti F1 Score: {senti_f1_score}')
 
-    # model.eval()
+    model.eval()
 
-    # dev_senti_loss = 0
-    # all_dev_senti_labels = []
-    # all_dev_senti_preds = []
+    dev_senti_loss = 0
+    all_dev_senti_labels = []
+    all_dev_senti_preds = []
 
-    # with torch.no_grad():
-    #     for i, batch in enumerate(dev_dataloader):
-    #         dev_input_ids, dev_attention_masks, dev_ner_labels, dev_senti_labels = batch
-    #         dev_input_ids = dev_input_ids.to(device)
-    #         dev_attention_masks = dev_attention_masks.to(device)
-    #         dev_ner_labels = dev_ner_labels.to(device)
-    #         dev_senti_labels = dev_senti_labels.to(device)
+    with torch.no_grad():
+        for i, batch in enumerate(dev_dataloader):
+            dev_input_ids, dev_attention_masks, dev_ner_labels, dev_senti_labels = batch
+            dev_input_ids = dev_input_ids.to(device)
+            dev_attention_masks = dev_attention_masks.to(device)
+            dev_ner_labels = dev_ner_labels.to(device)
+            dev_senti_labels = dev_senti_labels.to(device)
 
-    #         dev_senti_out, dev_ner_out = model(dev_input_ids, dev_attention_masks)
-    #         dev_senti_loss += senti_loss_fn(dev_senti_out, dev_senti_labels).item()
+            dev_senti_out, dev_ner_out = model(dev_input_ids, dev_attention_masks)
+            dev_senti_loss += senti_loss_fn(dev_senti_out, dev_senti_labels).item()
 
-    #         dev_senti_preds = torch.sigmoid(dev_senti_out)
-    #         dev_senti_preds = (dev_senti_preds > 0.5).cpu().numpy().astype(int)
-    #         dev_senti_labels = dev_senti_labels.cpu().numpy().astype(int)
-    #         all_dev_senti_labels.extend(dev_senti_labels.tolist())
-    #         all_dev_senti_preds.extend(dev_senti_preds.tolist())
+            dev_senti_preds = torch.sigmoid(dev_senti_out)
+            dev_senti_preds = (dev_senti_preds > 0.5).cpu().numpy().astype(int)
+            dev_senti_labels = dev_senti_labels.cpu().numpy().astype(int)
+            all_dev_senti_labels.extend(dev_senti_labels.tolist())
+            all_dev_senti_preds.extend(dev_senti_preds.tolist())
 
-    #     dev_senti_loss /= len(dev_dataloader)
-    #     dev_senti_f1_score = f1_score(all_dev_senti_labels, all_dev_senti_preds, average='micro')
-    #     print(f'Epoch {epoch+1}, Dev Senti Loss: {dev_senti_loss}, Dev Senti F1 Score: {dev_senti_f1_score}')
+        dev_senti_loss /= len(dev_dataloader)
+        dev_senti_f1_score = f1_score(all_dev_senti_labels, all_dev_senti_preds, average='micro')
+        print(f'Epoch {epoch+1}, Dev Senti Loss: {dev_senti_loss}, Dev Senti F1 Score: {dev_senti_f1_score}')
+            # 추가된 부분: 검증 데이터에서의 성능이 이전 최고보다 좋을 경우
+        if dev_senti_f1_score > best_dev_f1:
+            best_dev_f1 = dev_senti_f1_score  # 최고 성능 업데이트
+            torch.save(model.state_dict(), save_model_path)  # 모델 저장
+            print(f"Saved the new best model with Dev F1: {best_dev_f1}")
 
-    # model.train()  # Reset the model back to training mode
+# 훈련이 끝나면 최고 성능을 보이는 모델을 불러옴
+model.load_state_dict(torch.load(save_model_path))
+model.eval()
 
 def test_process_data(data, tokenizer, max_seq_length=max_seq_length):
     input_ids_list = []

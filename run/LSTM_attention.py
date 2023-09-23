@@ -9,6 +9,9 @@ from transformers import (
     AutoModel,
     )
 
+
+# baseline 코드에 넣어 사용 or baseline에서 from run.LSTM_attention import LSTM_attention와 같이 불러와서 사용
+
 class LSTM_attention(nn.Module):
         def __init__(self):
             super(LSTM_attention, self).__init__()
@@ -46,3 +49,5 @@ class LSTM_attention(nn.Module):
         
             else:
                 return logits
+
+model = LSTM_attention()

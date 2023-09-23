@@ -27,7 +27,7 @@ from run.LSTM_attention import LSTM_attention
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
 
 g = parser.add_argument_group("Common Parameter")
-g.add_argument("--output-dir", type=str, default="/home/nlpgpu9/ellt/eojin/EA/", help="output directory path to save artifacts")
+g.add_argument("--output-dir", type=str, default="/home/nlpgpu9/ellt/eojin/EA/", help="output directory path to save artifacts")https://github.com/JuaeKim54/YBEOBE/blob/main/run/train_LSTM_attention.py
 g.add_argument("--model-path", type=str, default="beomi/KcELECTRA-base-v2022", help="model file path")
 g.add_argument("--tokenizer", type=str, default="beomi/KcELECTRA-base-v2022", help="huggingface tokenizer path")
 g.add_argument("--max-seq-len", type=int, default=128, help="max sequence length")
@@ -39,7 +39,7 @@ g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning r
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
 g.add_argument("--threshold", type=float, default=0.5, help="threshold")
-g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, "help=or LSTM_attention")
+g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention")
 
 
 def main(args):

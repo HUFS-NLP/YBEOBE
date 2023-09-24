@@ -10,7 +10,7 @@ if len(sys.argv) < 2:
 _, command, *arguments = sys.argv
 
 if command == "train":
-    from .train import main, parser
+    from .train_model_choice import main, parser
 elif command == "inference":
     from .inference import main, parser
 elif command == "scoring":

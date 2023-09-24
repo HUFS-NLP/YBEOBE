@@ -1,30 +1,21 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    AutoConfig,
-    AutoModel,
-    )
-
-
-# baseline 코드에 넣어 사용 or baseline에서 from run.LSTM_attention import LSTM_attention으 불러와서 사용
+from transformers import AutoModelForSequenceClassification
 
 class LSTM_attention(nn.Module):
     def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
         super(LSTM_attention, self).__init__()
-        self.model = AutoModelForSequenceClassification.from_pretrained(args.model_path,
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_path,
                                                                               output_hidden_states=True,
                                                                               problem_type="multi_label_classification", 
-                                                                              num_labels=len(labels),
+                                                                              num_labels=num_labels,
                                                                               id2label=id2label,
                                                                               label2id=label2id)  
                                                                                     
         self.bi_lstm = nn.LSTM(768, 128, bidirectional=True, batch_first=True)
-        self.linear = nn.Linear(256, len(labels))
-        self.num_labels = len(labels)
+        self.linear = nn.Linear(256, num_labels)
+        self.num_labels = num_labels
 
     def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
         outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels).hidden_states[-1]

@@ -22,7 +22,7 @@ from transformers import (
 
 from datasets import Dataset
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
-from run.LSTM_attention import LSTM_attention
+from run.LSTM_attention import LSTM_attention  # run 폴더에 추가해야 함
 
 
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
@@ -112,7 +112,7 @@ def main(args):
     # config.id2label = id2label
     # config.label2id = label2id
    
-    # 모델 추가가
+    # 모델 추가
     model_choices = {
                     "AutoModelForSequenceClassification": AutoModelForSequenceClassification,
                     "LSTM_attention": LSTM_attention
@@ -157,7 +157,7 @@ def main(args):
         probs = sigmoid(torch.Tensor(predictions))
         # next, use threshold to turn them into integer predictions
         y_pred = np.zeros(probs.shape)
-        y_pred[np.where(probs >= threshold)] = 1
+        y_pred[np.where(probs >= 0.5)] = 1  # 나중에 arg에 threshold 변경할 것
         # finally, compute metrics
         y_true = labels
         f1_micro_average = f1_score(y_true=y_true, y_pred=y_pred, average='micro')

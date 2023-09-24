@@ -1,2 +1,2 @@
 # YBEOBE
-![Uploading DALL·E 2023-09-24 16.31.39 - Pokemon's Noctowl(ヨルノズク) and Mascod's Boo at Hankuk University of Foreign Studies plays a computer in the Hankuk University of Foreign Studies.png…]()
+https://github.com/JuaeKim54/YBEOBE/assets/140517360/a58a7edc-88eb-48a0-af0c-4de9fa21b993

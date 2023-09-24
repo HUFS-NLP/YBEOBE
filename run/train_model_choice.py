@@ -40,7 +40,7 @@ g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning r
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
 g.add_argument("--pre_threshold", type=float, default=0.5, help="threshold")
-g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention")
+g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention or loss_function etc")  # 모델 선택
 
 
 def main(args):
@@ -85,8 +85,6 @@ def main(args):
         # take a batch of texts
         text1 = examples["input"]["form"]
         text2 = examples["input"]["target"]["form"]
-        # target_begin = examples["input"]["target"].get("begin")
-        # target_end = examples["input"]["target"].get("end")
 
         # encode them
         encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
@@ -101,19 +99,20 @@ def main(args):
 
     encoded_tds = train_ds.map(preprocess_data, remove_columns=train_ds.column_names)
     encoded_vds = valid_ds.map(preprocess_data, remove_columns=valid_ds.column_names)
-    encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)
+    encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)  # 한 번에 학습 + 추론 위헤
 
     logger.info(f'[+] Load Model from "{args.model_path}"')
 
 
-    # config = AutoConfig.from_pretrained(args.model_path)
+    # config 수정하려면 사용
+    # config = AutoConfig.from_pretrained(args.model_path)  
     # config.output_hidden_states = True
     # config.problem_type = "multi_label_classification"
     # config.num_labels = len(labels)
     # config.id2label = id2label
     # config.label2id = label2id
    
-        
+    # 모델 추가가
     model_choices = {
                     "AutoModelForSequenceClassification": AutoModelForSequenceClassification,
                     "LSTM_attention": LSTM_attention
@@ -133,7 +132,7 @@ def main(args):
         raise ValueError("Invalid model choice")
 
     if args.model_choice == "LSTM_attention":
-        common_params['output_hidden_states'] = True
+        common_params['output_hidden_states'] = True  # LSTM에서는 은닉층 출력 필요
 
 
     model = ModelClass(**common_params)
@@ -203,7 +202,7 @@ def main(args):
             predictions, label_ids, _ = trainer.predict(test_dataset)
             sigmoid = torch.nn.Sigmoid()
             threshold_values = sigmoid(torch.Tensor(predictions))
-            outputs = (threshold_values >= 0.5).tolist()
+            outputs = (threshold_values >= 0.5).tolist()  # 나중에 arg에 threshold 변경할 것
         
             j_list = jsonlload("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
             

@@ -19,6 +19,7 @@ from transformers import (
     TrainerCallback
     )
 
+
 from datasets import Dataset
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
 from run.LSTM_attention import LSTM_attention
@@ -27,7 +28,7 @@ from run.LSTM_attention import LSTM_attention
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
 
 g = parser.add_argument_group("Common Parameter")
-g.add_argument("--output-dir", type=str, default="/home/nlpgpu9/ellt/eojin/EA/", help="output directory path to save artifacts")https://github.com/JuaeKim54/YBEOBE/blob/main/run/train_LSTM_attention.py
+g.add_argument("--output-dir", type=str, default="/home/nlpgpu9/ellt/eojin/EA/", help="output directory path to save artifacts")
 g.add_argument("--model-path", type=str, default="beomi/KcELECTRA-base-v2022", help="model file path")
 g.add_argument("--tokenizer", type=str, default="beomi/KcELECTRA-base-v2022", help="huggingface tokenizer path")
 g.add_argument("--max-seq-len", type=int, default=128, help="max sequence length")
@@ -86,6 +87,7 @@ def main(args):
         text2 = examples["input"]["target"]["form"]
         # target_begin = examples["input"]["target"].get("begin")
         # target_end = examples["input"]["target"].get("end")
+
         # encode them
         encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
         # add labels
@@ -103,13 +105,38 @@ def main(args):
 
     logger.info(f'[+] Load Model from "{args.model_path}"')
 
-    
-    model = args.model_choice(model_path=args.model_path,
-                       output_hidden_states=True,
-                       problem_type="multi_label_classification",
-                       num_labels=len(labels),
-                       id2label=id2label,
-                       label2id=label2id)
+
+    # config = AutoConfig.from_pretrained(args.model_path)
+    # config.output_hidden_states = True
+    # config.problem_type = "multi_label_classification"
+    # config.num_labels = len(labels)
+    # config.id2label = id2label
+    # config.label2id = label2id
+   
+        
+    model_choices = {
+                    "AutoModelForSequenceClassification": AutoModelForSequenceClassification,
+                    "LSTM_attention": LSTM_attention
+                }
+
+    common_params = {
+        'model_path': args.model_path,
+        'problem_type': "multi_label_classification",
+        'num_labels': len(labels),
+        'id2label': id2label,
+        'label2id': label2id
+    }
+
+    ModelClass = model_choices.get(args.model_choice)
+
+    if ModelClass is None:
+        raise ValueError("Invalid model choice")
+
+    if args.model_choice == "LSTM_attention":
+        common_params['output_hidden_states'] = True
+
+
+    model = ModelClass(**common_params)
 
 
     targs = TrainingArguments(
@@ -143,11 +170,10 @@ def main(args):
                    'accuracy': accuracy}
         return metrics
 
-  
     def compute_metrics(p: EvalPrediction):
         preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
         result = multi_label_metrics(predictions=preds, labels=p.label_ids)
-        with open("/home/nlpgpu9/ellt/eojin/EA/log/LSTM+attention_v2.txt", "a") as f:
+        with open(f"{args.output_dir}log.txt", "a") as f:
             f.write(json.dumps(result) + '\n')
         return result
         
@@ -176,12 +202,18 @@ def main(args):
         
             predictions, label_ids, _ = trainer.predict(test_dataset)
             sigmoid = torch.nn.Sigmoid()
-            probs = sigmoid(torch.Tensor(predictions))
-            outputs = (probs >= 0.5).tolist()
+            threshold_values = sigmoid(torch.Tensor(predictions))
+            outputs = (threshold_values >= args.threshold).tolist()
         
             j_list = jsonlload("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
+            
             for idx, oup in enumerate(outputs):
                 j_list[idx]["output"] = {}
+
+                if not any(oup):
+                    max_index = threshold_values[idx].argmax().item()
+                    oup[max_index] = True
+
                 for jdx, v in enumerate(oup):
                     if v:
                         j_list[idx]["output"][id2label[jdx]] = "True"
@@ -190,6 +222,7 @@ def main(args):
         
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
 
+    
 
     trainer = Trainer(
         model,

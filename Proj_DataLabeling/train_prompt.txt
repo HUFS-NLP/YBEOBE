@@ -1,8 +1,0 @@
-input_form: 하... 근데 준프샤 너무 고소각임...
-input_target_form: 준프샤
-output_data: {'joy': 'True', 'anticipation': 'False', 'trust': 'False', 'surprise': 'False', 'disgust': 'False', 'fear': 'False', 'anger': 'False', 'sadness': 'False'}
-
-input_form: 2기였나 지은북이랑 4기 메거진은 지금도 읽는데
-input_target_form: 4기 메거진
-output_data: {'joy': 'True', 'anticipation': 'False', 'trust': 'False', 'surprise': 'False', 'disgust': 'False', 'fear': 'False', 'anger': 'False', 'sadness': 'False'}
-

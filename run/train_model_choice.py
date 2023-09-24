@@ -39,7 +39,7 @@ g.add_argument("--epochs", type=int, default=30, help="the numnber of training e
 g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning rate")
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
-g.add_argument("--threshold", type=float, default=0.5, help="threshold")
+g.add_argument("--pre_threshold", type=float, default=0.5, help="threshold")
 g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention")
 
 
@@ -203,7 +203,7 @@ def main(args):
             predictions, label_ids, _ = trainer.predict(test_dataset)
             sigmoid = torch.nn.Sigmoid()
             threshold_values = sigmoid(torch.Tensor(predictions))
-            outputs = (threshold_values >= args.threshold).tolist()
+            outputs = (threshold_values >= 0.5).tolist()
         
             j_list = jsonlload("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
             

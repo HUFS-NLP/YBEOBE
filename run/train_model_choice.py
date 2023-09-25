@@ -151,7 +151,7 @@ def main(args):
         metric_for_best_model= "f1",
     )
 
-    def multi_label_metrics(predictions, labels, threshold=args.threshold):
+    def multi_label_metrics(predictions, labels, threshold=0.5):
         # first, apply sigmoid on predictions which are of shape (batch_size, num_labels)
         sigmoid = torch.nn.Sigmoid()
         probs = sigmoid(torch.Tensor(predictions))

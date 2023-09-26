@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from torch.optim import Adam
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -22,16 +23,16 @@ from transformers import (
 
 from datasets import Dataset
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
-from run.LSTM_attention import LSTM_attention  # run 폴더에 추가해야 함
+from run.LSTM_attention import LSTM_attention, LSTM_multitask, loss_function
 
 
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
 
 g = parser.add_argument_group("Common Parameter")
-g.add_argument("--output-dir", type=str, default="/home/nlpgpu9/ellt/eojin/EA/", help="output directory path to save artifacts")
+g.add_argument("--output-dir", type=str, default="/home/nlpgpu7/ellt/eojin/EA/", help="output directory path to save artifacts")
 g.add_argument("--model-path", type=str, default="beomi/KcELECTRA-base-v2022", help="model file path")
 g.add_argument("--tokenizer", type=str, default="beomi/KcELECTRA-base-v2022", help="huggingface tokenizer path")
-g.add_argument("--max-seq-len", type=int, default=128, help="max sequence length")
+g.add_argument("--max-seq-len", type=int, default=200, help="max sequence length")
 g.add_argument("--batch-size", type=int, default=32, help="training batch size")
 g.add_argument("--valid-batch-size", type=int, default=64, help="validation batch size")
 g.add_argument("--accumulate-grad-batches", type=int, default=8, help=" the number of gradident accumulation steps")
@@ -39,8 +40,7 @@ g.add_argument("--epochs", type=int, default=30, help="the numnber of training e
 g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning rate")
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
-g.add_argument("--pre_threshold", type=float, default=0.5, help="threshold")
-g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention or loss_function etc")  # 모델 선택
+g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention or LSTM_multitask or loss_function")
 
 
 def main(args):
@@ -71,9 +71,9 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     logger.info(f'[+] Load Dataset')
-    train_ds = Dataset.from_json("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-train_수정_중복제거.jsonl")
-    valid_ds = Dataset.from_json("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-dev_수정.jsonl")
-    test_ds = Dataset.from_json("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
+    train_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-train_수정_중복제거.jsonl")
+    valid_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-dev_수정.jsonl")
+    test_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
 
     labels = list(train_ds["output"][0].keys())
     id2label = {idx:label for idx, label in enumerate(labels)}
@@ -85,6 +85,8 @@ def main(args):
         # take a batch of texts
         text1 = examples["input"]["form"]
         text2 = examples["input"]["target"]["form"]
+        target_begin = examples["input"]["target"].get("begin")
+        target_end = examples["input"]["target"].get("end")
 
         # encode them
         encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
@@ -94,28 +96,48 @@ def main(args):
             for key, idx in label2id.items():
                 if examples["output"][key] == 'True':
                     encoding["labels"][idx] = 1.0
-        
+
+
+        # 타겟 찾기 (attention, multitask 위해)
+        encoding["target_positions"] = [0] * len(encoding['input_ids'])  # 문장 길이만큼 0으로 초기화
+
+        if text2 != None:
+            encoded_target = tokenizer(text2, add_special_tokens=False)["input_ids"]
+            encoded_text = tokenizer(text1, add_special_tokens=False)["input_ids"]
+
+            for i in range(len(encoded_text) - len(encoded_target) + 1):
+                if encoded_text[i:i+len(encoded_target)] == encoded_target:
+                    target_begin = i + 1  # [CLS] 떄문에 + 1
+                    target_end = i + len(encoded_target) + 1  # 나중에 리스트 슬라이싱 때문에 + 1
+                    break
+
+        # Mark the target positions with 1
+            for i in range(target_begin, target_end):
+                encoding["target_positions"][i] = 1  # 타겟이면 1, 타겟이 아니면 0
+
         return encoding
+
 
     encoded_tds = train_ds.map(preprocess_data, remove_columns=train_ds.column_names)
     encoded_vds = valid_ds.map(preprocess_data, remove_columns=valid_ds.column_names)
-    encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)  # 한 번에 학습 + 추론 위헤
+    encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)
 
     logger.info(f'[+] Load Model from "{args.model_path}"')
 
 
-    # config 수정하려면 사용
-    # config = AutoConfig.from_pretrained(args.model_path)  
+    # config = AutoConfig.from_pretrained(args.model_path)
     # config.output_hidden_states = True
     # config.problem_type = "multi_label_classification"
     # config.num_labels = len(labels)
     # config.id2label = id2label
     # config.label2id = label2id
    
-    # 모델 추가
+        
     model_choices = {
                     "AutoModelForSequenceClassification": AutoModelForSequenceClassification,
-                    "LSTM_attention": LSTM_attention
+                    "LSTM_attention": LSTM_attention,
+                    "LSTM_multitask": LSTM_multitask,
+                    "loss_function": loss_function
                 }
 
     common_params = {
@@ -131,12 +153,20 @@ def main(args):
     if ModelClass is None:
         raise ValueError("Invalid model choice")
 
-    if args.model_choice == "LSTM_attention":
-        common_params['output_hidden_states'] = True  # LSTM에서는 은닉층 출력 필요
+    if args.model_choice == "LSTM_attention" or "LSTM_multitask" or "loss_function":
+        common_params['output_hidden_states'] = True
 
 
     model = ModelClass(**common_params)
 
+
+    # def custom_optimizer(model):  # 나중에 모델 별로 학습률 다르게 할 때 추가
+    #     return Adam([
+    #         {'params': model.model.parameters(), 'lr': 1e-5},  # 사전학습된 모델
+    #         {'params': model.bi_lstm.parameters(), 'lr': 1e-3},  # 양방향 LSTM
+    #         {'params': model.linear.parameters(), 'lr': 1e-3}  # 선형 레이어
+    #     ])
+    
 
     targs = TrainingArguments(
         output_dir=args.output_dir,
@@ -157,7 +187,7 @@ def main(args):
         probs = sigmoid(torch.Tensor(predictions))
         # next, use threshold to turn them into integer predictions
         y_pred = np.zeros(probs.shape)
-        y_pred[np.where(probs >= 0.5)] = 1  # 나중에 arg에 threshold 변경할 것
+        y_pred[np.where(probs >= threshold)] = 1
         # finally, compute metrics
         y_true = labels
         f1_micro_average = f1_score(y_true=y_true, y_pred=y_pred, average='micro')
@@ -202,14 +232,26 @@ def main(args):
             predictions, label_ids, _ = trainer.predict(test_dataset)
             sigmoid = torch.nn.Sigmoid()
             threshold_values = sigmoid(torch.Tensor(predictions))
-            outputs = (threshold_values >= 0.5).tolist()  # 나중에 arg에 threshold 변경할 것
+            outputs = (threshold_values >= 0.5).tolist()
         
-            j_list = jsonlload("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
+            j_list = jsonlload("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
             
             for idx, oup in enumerate(outputs):
                 j_list[idx]["output"] = {}
-
-                if not any(oup):
+            
+                # oup에서 True 또는 1인 값의 개수를 확인
+                true_count = sum(oup)
+            
+                if true_count >= 4:
+                    # threshold_values의 상위 3개 인덱스를 찾음
+                    top_three_indices = np.argsort(threshold_values[idx])[-3:]
+                    # oup를 모두 False로 초기화
+                    oup = [False] * len(oup)
+                    # 상위 3개 인덱스만 True로 설정
+                    for top_idx in top_three_indices:
+                        oup[top_idx] = True
+                    
+                elif not any(oup):
                     max_index = threshold_values[idx].argmax().item()
                     oup[max_index] = True
 

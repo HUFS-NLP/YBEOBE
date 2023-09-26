@@ -87,7 +87,7 @@ class LSTM_multitask(nn.Module):
 
 class loss_function(nn.Module):
     def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
-        super(LSTM_attention, self).__init__()
+        super(loss_function, self).__init__()
         self.model = AutoModelForSequenceClassification.from_pretrained(model_path,
                                                                         output_hidden_states=True,
                                                                         problem_type="multi_label_classification", 

@@ -153,7 +153,7 @@ def main(args):
     if ModelClass is None:
         raise ValueError("Invalid model choice")
 
-    if args.model_choice == "LSTM_attention" or "LSTM_multitask" or "loss_function":
+    if args.model_choice in ["LSTM_attention", "LSTM_multitask", "loss_function"]:
         common_params['output_hidden_states'] = True
 
 

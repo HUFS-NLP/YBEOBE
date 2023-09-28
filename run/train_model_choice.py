@@ -40,7 +40,7 @@ g.add_argument("--epochs", type=int, default=30, help="the numnber of training e
 g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning rate")
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
-g.add_argument("--model-choice", type=str, default=AutoModelForSequenceClassification, help="or LSTM_attention or LSTM_multitask or loss_function")
+g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassification", help="or LSTM_attention or LSTM_multitask or loss_function")
 
 
 def main(args):

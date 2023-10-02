@@ -22,8 +22,8 @@ class LSTM_attention(nn.Module):
         lstm_out, (h_n, _) = self.bi_lstm(outputs)
         h_n = torch.cat((h_n[-2,:,:], h_n[-1,:,:]), dim=1)
 
-        target_indices = (target_positions == 1).nonzero(as_tuple=True)[1]  # token_type_ids == 1인 것이 타겟. [0]은 배치 기준, [1]은 문장 기준
-        query = lstm_out[:, target_indices, :]  # [배치 크기, 타겟 길이, 임베딩 차원]
+        target_indices_row, target_indices_col = (target_positions == 1).nonzero(as_tuple=True)  # token_type_ids == 1인 것이 타겟. [0]은 배치 기준, [1]은 문장 기준
+        query = lstm_out[target_indices_row, target_indices_col, :]  # [배치 크기, 타겟 길이, 임베딩 차원]
 
         attn_output = F.scaled_dot_product_attention(query, lstm_out, lstm_out, dropout_p=0.1)  # query[배치 크기, 타겟 길이, 임베딩 차원], key[배치 크기, 문장 길이, 임베딩 차원], value[배치 크기, 문장 길이, 임베딩 차원]
         attn_output = attn_output.mean(dim=1)  # 문장 기준 평균 내서 h_n과 차원 맞추기

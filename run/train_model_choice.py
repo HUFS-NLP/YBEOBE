@@ -134,11 +134,10 @@ def main(args):
    
         
     model_choices = {
-                    "AutoModelForSequenceClassification": AutoModelForSequenceClassification,
                     "LSTM_attention": LSTM_attention,
                     "LSTM_multitask": LSTM_multitask,
                     "loss_function": loss_function
-                }
+                    }
 
     common_params = {
         'model_path': args.model_path,
@@ -150,14 +149,20 @@ def main(args):
 
     ModelClass = model_choices.get(args.model_choice)
 
-    if ModelClass is None:
-        raise ValueError("Invalid model choice")
 
-    if args.model_choice in ["LSTM_attention", "LSTM_multitask", "loss_function"]:
+    if args.model_choice in model_choices:
         common_params['output_hidden_states'] = True
+        model = ModelClass(**common_params)
 
-
-    model = ModelClass(**common_params)
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_path, 
+        # config=config
+        problem_type="multi_label_classification",
+        num_labels=len(labels),
+        id2label=id2label,
+        label2id=label2id
+        )
 
 
     # def custom_optimizer(model):  # 나중에 모델 별로 학습률 다르게 할 때 추가

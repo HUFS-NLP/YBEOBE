@@ -23,7 +23,7 @@ from transformers import (
 
 from datasets import Dataset
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
-from run.LSTM_attention import LSTM_attention, LSTM_multitask, loss_function
+from run.LSTM_attention import *
 
 
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
@@ -270,7 +270,7 @@ def main(args):
 
     
 
-    trainer = Trainer(
+    trainer = Trainer(  # or loss_function_Trainer
         model,
         targs,
         train_dataset=encoded_tds,

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoModelForSequenceClassification, AutoModel
+from transformers import AutoModelForSequenceClassification, AutoModel, Trainer
 
 
 class LSTM_attention(nn.Module):
@@ -84,31 +84,62 @@ class LSTM_multitask(nn.Module):
             return logits
         
 
+class AsymmetricLoss(nn.Module):
+    def __init__(self, gamma_neg=1, gamma_pos=0, clip=0.05, eps=1e-8, disable_torch_grad_focal_loss=True):
+        super(AsymmetricLoss, self).__init__()
 
-class loss_function(nn.Module):
-    def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
-        super(loss_function, self).__init__()
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_path,
-                                                                        output_hidden_states=True,
-                                                                        problem_type="multi_label_classification", 
-                                                                        num_labels=num_labels,
-                                                                        id2label=id2label,
-                                                                        label2id=label2id)                                                                          
-        self.linear = nn.Linear(768, num_labels)  # # AutoModelForSequenceClassification의 차원 768
-        self.num_labels = num_labels
+        self.gamma_neg = gamma_neg
+        self.gamma_pos = gamma_pos
+        self.clip = clip
+        self.disable_torch_grad_focal_loss = disable_torch_grad_focal_loss
+        self.eps = eps
+
+    def forward(self, x, y):
+        """"
+        Parameters
+        ----------
+        x: input logits
+        y: targets (multi-label binarized vector)
+        """
+
+        # Calculating Probabilities
+        x_sigmoid = torch.sigmoid(x)
+        xs_pos = x_sigmoid
+        xs_neg = 1 - x_sigmoid
+
+        # Asymmetric Clipping
+        if self.clip is not None and self.clip > 0:
+            xs_neg = (xs_neg + self.clip).clamp(max=1)
+
+        # Basic CE calculation
+        los_pos = y * torch.log(xs_pos.clamp(min=self.eps))
+        los_neg = (1 - y) * torch.log(xs_neg.clamp(min=self.eps))
+        loss = los_pos + los_neg
+
+        # Asymmetric Focusing
+        if self.gamma_neg > 0 or self.gamma_pos > 0:
+            if self.disable_torch_grad_focal_loss:
+                torch.set_grad_enabled(False)
+            pt0 = xs_pos * y
+            pt1 = xs_neg * (1 - y)  # pt = p if t > 0 else 1-p
+            pt = pt0 + pt1
+            one_sided_gamma = self.gamma_pos * y + self.gamma_neg * (1 - y)
+            one_sided_w = torch.pow(1 - pt, one_sided_gamma)
+            if self.disable_torch_grad_focal_loss:
+                torch.set_grad_enabled(True)
+            loss *= one_sided_w
+
+        return -loss.sum()
 
 
-    def forward(self, input_ids, attention_mask, target_positions, token_type_ids=None, labels=None):
-        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels).hidden_states[-1]
-        logits = self.linear(outputs)
-            
-        if labels != None:  # 학습일 경우
-            loss_fct = nn.BCEWithLogitsLoss()  # 손실함수 바꾸는 부분
-            loss = loss_fct(logits, labels.float())
-            return loss, logits
-        
-        else:  # 평가일 경우
-            return logits
+class loss_function_Trainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs["labels"]
+        outputs = model(**inputs)
+        logits = outputs[0]
+        loss_fct = AsymmetricLoss()
+        loss = loss_fct(logits, labels.float())
+        return (loss, outputs) if return_outputs else loss
 
 
 

@@ -131,6 +131,7 @@ def main(args):
     # config.num_labels = len(labels)
     # config.id2label = id2label
     # config.label2id = label2id
+    # config.hidden_dropout_prob = 0.5
    
         
     model_choices = {

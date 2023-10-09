@@ -20,9 +20,8 @@ from transformers import (
     TrainerCallback
     )
 
-
 from datasets import Dataset
-from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
+from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, confusion_matrix, precision_score, recall_score
 from run.LSTM_attention import *
 
 
@@ -187,6 +186,7 @@ def main(args):
         metric_for_best_model= "f1",
     )
 
+    
     def multi_label_metrics(predictions, labels, threshold=0.5):
         # first, apply sigmoid on predictions which are of shape (batch_size, num_labels)
         sigmoid = torch.nn.Sigmoid()
@@ -196,14 +196,32 @@ def main(args):
         y_pred[np.where(probs >= threshold)] = 1
         # finally, compute metrics
         y_true = labels
+
         f1_micro_average = f1_score(y_true=y_true, y_pred=y_pred, average='micro')
-        roc_auc = roc_auc_score(y_true, y_pred, average = 'micro')
+        roc_auc = roc_auc_score(y_true, y_pred, average='micro')
         accuracy = accuracy_score(y_true, y_pred)
-        # return as dictionary
+
+        tn, fp, fn, tp = confusion_matrix(y_true.ravel(), y_pred.ravel()).ravel()
+        sensitivity = tp / (tp + fn)
+        specificity = tn / (tn + fp)
+        youden_j = sensitivity + specificity - 1
+
+        precision = precision_score(y_true=y_true, y_pred=y_pred, average='micro')
+
+        recall = recall_score(y_true=y_true, y_pred=y_pred, average='micro')
+
         metrics = {'f1': f1_micro_average,
+                   'sensitivity': sensitivity,
+                   'specificity': specificity,
                    'roc_auc': roc_auc,
-                   'accuracy': accuracy}
+                   'accuracy': accuracy,
+                   'youden_j': youden_j,
+                   'precision': precision,
+                   'recall': recall
+                   }
+        
         return metrics
+        
 
     def compute_metrics(p: EvalPrediction):
         preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions

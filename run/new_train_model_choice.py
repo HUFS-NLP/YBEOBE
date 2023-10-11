@@ -71,9 +71,9 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     logger.info(f'[+] Load Dataset')
-    train_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-2023-ea-train.jsonl")
-    valid_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-2023-ea-dev.jsonl")
-    test_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-2023-ea-test.jsonl")
+    train_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-combined.jsonl")
+    valid_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/1434.jsonl")
+    test_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
 
     labels = list(train_ds["output"][0].keys())
     id2label = {idx:label for idx, label in enumerate(labels)}
@@ -234,6 +234,7 @@ def main(args):
                 compute_metrics=compute_metrics
             )
         
+        
             # 각 클래스별 임계값 설정
             threshold_dict = {
                 0: 0.5, #joy
@@ -241,8 +242,8 @@ def main(args):
                 2: 0.5, #trust
                 3: 0.5, #surprise
                 4: 0.5, #disgust
-                5: 0.4, #fear
-                6: 0.43, #anger
+                5: 0.5, #fear
+                6: 0.5, #anger
                 7: 0.5 #sadness
             }
             # 예측값에 시그모이드 함수 적용
@@ -260,14 +261,14 @@ def main(args):
 
             # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
 
-            j_list = jsonlload("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-2023-ea-test.jsonl")
-            
+            j_list = jsonlload("//home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
+
             for idx, oup in enumerate(outputs):
                 j_list[idx]["output"] = {}
-            
+
                 # oup에서 True 또는 1인 값의 개수를 확인
                 true_count = sum(oup)
-            
+
                 if true_count >= 4:
                     # threshold_values의 상위 3개 인덱스를 찾음
                     top_three_indices = np.argsort(threshold_values[idx])[-3:]
@@ -276,19 +277,72 @@ def main(args):
                     # 상위 3개 인덱스만 True로 설정
                     for top_idx in top_three_indices:
                         oup[top_idx] = True
-                    
+                            
                 elif not any(oup):
                     max_index = threshold_values[idx].argmax().item()
                     oup[max_index] = True
 
                 for jdx, v in enumerate(oup):
-                    if v:
-                        j_list[idx]["output"][id2label[jdx]] = "True"
-                    else:
-                        j_list[idx]["output"][id2label[jdx]] = "False"
-        
-            jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
+                    j_list[idx]["output"][id2label[jdx]] = ["True" if v else "False", threshold_values[idx][jdx].item()]
 
+            jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
+            
+            
+            # # 각 클래스별 임계값 설정
+            # threshold_dict = {
+            #     0: 0.24, #joy
+            #     1: 0.77, #anticipation
+            #     2: 0.12, #trust
+            #     3: 0.98, #surprise
+            #     4: 0.99, #disgust
+            #     5: 0.78, #fear
+            #     6: 0.09, #anger
+            #     7: 0.95 #sadness
+            # }
+            # # 예측값에 시그모이드 함수 적용
+            # predictions, label_ids, _ = trainer.predict(test_dataset)
+            # sigmoid = torch.nn.Sigmoid()
+            # threshold_values = sigmoid(torch.Tensor(predictions))
+            
+            # # 각 클래스별로 임계값 적용하여 outputs 생성
+            # outputs = []
+            # for thresholded in threshold_values:
+            #     output = []
+            #     for jdx, value in enumerate(thresholded):
+            #         output.append(float(value) >= threshold_dict.get(jdx, 0.5))
+            #     outputs.append(output)
+
+            # # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
+
+            # j_list = jsonlload("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/updated_test_불용어처리.jsonl")
+            
+            # for idx, oup in enumerate(outputs):
+            #     j_list[idx]["output"] = {}
+            
+            #     # oup에서 True 또는 1인 값의 개수를 확인
+            #     true_count = sum(oup)
+            
+            #     if true_count >= 4:
+            #         # threshold_values의 상위 3개 인덱스를 찾음
+            #         top_three_indices = np.argsort(threshold_values[idx])[-3:]
+            #         # oup를 모두 False로 초기화
+            #         oup = [False] * len(oup)
+            #         # 상위 3개 인덱스만 True로 설정
+            #         for top_idx in top_three_indices:
+            #             oup[top_idx] = True
+                    
+            #     elif not any(oup):
+            #         max_index = threshold_values[idx].argmax().item()
+            #         oup[max_index] = True
+
+            #     for jdx, v in enumerate(oup):
+            #         if v:
+            #             j_list[idx]["output"][id2label[jdx]] = "True"
+            #         else:
+            #             j_list[idx]["output"][id2label[jdx]] = "False"
+        
+            # jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
+            
     
 
     trainer = Trainer(

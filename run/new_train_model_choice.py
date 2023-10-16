@@ -235,7 +235,7 @@ def main(args):
             )
         
         
-            # 각 클래스별 임계값 설정
+            # 각 클래스별 임계값 설정(threshold 찾기)
             threshold_dict = {
                 0: 0.5, #joy
                 1: 0.5, #anticipation
@@ -288,12 +288,12 @@ def main(args):
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
             
             
-            # # 각 클래스별 임계값 설정
+            # # 각 클래스별 임계값 설정(실제 훈련할때)
             # threshold_dict = {
             #     0: 0.24, #joy
             #     1: 0.77, #anticipation
             #     2: 0.12, #trust
-            #     3: 0.98, #surprise
+            #     3: 0.729, #surprise
             #     4: 0.99, #disgust
             #     5: 0.78, #fear
             #     6: 0.09, #anger
@@ -314,7 +314,7 @@ def main(args):
 
             # # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
 
-            # j_list = jsonlload("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/updated_test_불용어처리.jsonl")
+            # j_list = jsonlload("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
             
             # for idx, oup in enumerate(outputs):
             #     j_list[idx]["output"] = {}

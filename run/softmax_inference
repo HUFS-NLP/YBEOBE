@@ -152,30 +152,6 @@ def main(args):
                 num_warmup_steps=self.args.warmup_steps,  # 1700
                 num_training_steps=num_training_steps  # 17768
             )
-    #         # self.lr_scheduler = get_cosine_with_hard_restarts_schedule_with_warmup(
-    #         #     self.optimizer, 
-    #         #     num_warmup_steps=self.args.warmup_steps, 
-    #         #     num_training_steps=num_training_steps
-    #         # )        
-    # class CustomTrainer(Trainer):
-    #     def create_optimizer_and_scheduler(self, num_training_steps: int):
-    #         self.optimizer = AdamW([
-    #             {'params': self.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay}
-    #             # {'params': self.model.model.parameters(), 'lr': 4e-5, 'weight_decay': 2e-5},
-    #             # {'params': self.model.bi_lstm.parameters(), 'lr': 2e-3, 'weight_decay': 2e-4},
-    #             # {'params': self.model.linear.parameters(), 'lr': 2e-3, 'weight_decay': 2e-4},
-    #             # {'params': self.model.gate_linear.parameters(), 'lr': 2e-3, 'weight_decay': 2e-4}
-    #         ])
-
-    #     # Initialize the ReduceLROnPlateau scheduler
-    #         self.lr_scheduler = ReduceLROnPlateau(self.optimizer, mode='max', factor=0.1, patience=5, verbose=True)
-
-    #     def on_epoch_end(self, args, state, control, logs=None, **kwargs):
-    #         # Assume f1_score is the metric you want to use to reduce the learning rate
-    #         f1_score = logs.get('eval_f1', None)
-    #         if f1_score is not None:
-    #             # Update the learning rate
-    #             self.lr_scheduler.step(f1_score)
 
         
     model_choices = {
@@ -285,7 +261,7 @@ def main(args):
             logger.info("Epoch ended. Running inference on test set...")
             test_dataset = encoded_test_ds
         
-            trainer = Trainer(
+            trainer = CustomTrainer(
                 model,
                 targs,
                 compute_metrics=compute_metrics
@@ -352,10 +328,11 @@ def main(args):
         callbacks=[TestInferenceCallback()]
     )
 
+    # attention 추가 모델이라 이렇게 불러 옴. 그냥 Automodel이면 baseline의 inference 코드처럼 모델 불러오면 됨.
     model.load_state_dict(torch.load("/home/nlpgpu9/data/hufs/dhk/outputs/꼬링크_twhin_seed13_epoch70_attention_1e-5_5e-4_1e-3_5e-3_train+dev_반후처리/epoch_70.0_model_path_pretrained/model_weights.pth"))
     
     def run_inference(model, test_dataset, threshold_dict, compute_metrics, id2label):
-        trainer = Trainer(
+        trainer = CustomTrainer(
             model,
             compute_metrics=compute_metrics
         )
@@ -406,10 +383,10 @@ def main(args):
         
     run_inference(
         model,
-        encoded_test_ds,  # 미리 정의된 테스트 데이터셋
-        threshold_dict,  # 미리 정의된 임계값 딕셔너리
-        compute_metrics,  # 미리 정의된 메트릭 계산 함수
-        id2label  # 미리 정의된 id2label 딕셔너리
+        encoded_test_ds,
+        threshold_dict,
+        compute_metrics,
+        id2label
     )
     
 

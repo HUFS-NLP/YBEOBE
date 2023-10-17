@@ -10,6 +10,7 @@ model_weights = {
     "kcelectra": 0.4
 }
 
+emotion_thresholds_path = "ENSEMBLE/emotion_thresholds.json"
 emotion_thresholds = {
     "joy": 0.5,
     "anticipation": 0.5,
@@ -98,6 +99,10 @@ def do_ensemble(get_label=True, post_process=False):
 do_ensemble(get_label=False, post_process=False)
 
 def get_threshold():
-    pass
+    with open(emotion_thresholds_path, 'r', encoding='utf8') as file:
+        thresholds = json.load(file)
+    return thresholds
 
-# do_ensemble(get_label=True, post_process=True)
+thresholds = get_threshold()
+
+do_ensemble(get_label=True, post_process=True)

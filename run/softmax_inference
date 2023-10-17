@@ -153,39 +153,6 @@ def main(args):
                 num_training_steps=num_training_steps  # 17768
             )
 
-        
-    model_choices = {
-                    "LSTM_attention": LSTM_attention,
-                    "LSTM_multitask": LSTM_multitask,
-                    "loss_function": loss_function
-                    }
-    
-
-    common_params = {
-        'model_path': args.model_path,
-        'problem_type': "multi_label_classification",
-        'num_labels': len(labels),
-        'id2label': id2label,
-        'label2id': label2id
-    }
-
-    ModelClass = model_choices.get(args.model_choice)
-
-
-    if args.model_choice in model_choices:
-        common_params['output_hidden_states'] = True
-        model = ModelClass(**common_params)
-
-    else:
-        model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_path, 
-        # config=config
-        problem_type="multi_label_classification",
-        num_labels=len(labels),
-        id2label=id2label,
-        label2id=label2id
-        )
-
 
     targs = TrainingArguments(
         output_dir=args.output_dir,
@@ -328,8 +295,18 @@ def main(args):
         callbacks=[TestInferenceCallback()]
     )
 
-    # attention 추가 모델이라 이렇게 불러 옴. 그냥 Automodel이면 baseline의 inference 코드처럼 모델 불러오면 됨.
-    model.load_state_dict(torch.load("/home/nlpgpu9/data/hufs/dhk/outputs/꼬링크_twhin_seed13_epoch70_attention_1e-5_5e-4_1e-3_5e-3_train+dev_반후처리/epoch_70.0_model_path_pretrained/model_weights.pth"))
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_ckpt_path,
+        problem_type="multi_label_classification",
+        num_labels=len(labels),
+        id2label=id2label,
+        label2id=label2id
+    )
+
+
+    logger.info("[+] Eval mode & Disable gradient")
+    model.eval()
+    torch.set_grad_enabled(False)
     
     def run_inference(model, test_dataset, threshold_dict, compute_metrics, id2label):
         trainer = CustomTrainer(

@@ -223,62 +223,6 @@ def main(args):
             for json_data in j_list:
                 f.write(json.dumps(json_data, ensure_ascii=False)+'\n')
 
-    class TestInferenceCallback(TrainerCallback):
-        def on_epoch_end(self, args, state, control, model=None, **kwargs):
-            logger.info("Epoch ended. Running inference on test set...")
-            test_dataset = encoded_test_ds
-        
-            trainer = CustomTrainer(
-                model,
-                targs,
-                compute_metrics=compute_metrics
-            )
-        
-        
-            # 각 클래스별 임계값 설정
-            threshold_dict = {
-                0: 0.5, #joy
-                1: 0.5, #anticipation
-                2: 0.5, #trust
-                3: 0.5, #surprise
-                4: 0.5, #disgust
-                5: 0.5, #fear
-                6: 0.5, #anger
-                7: 0.5 #sadness
-            }
-            # 예측값에 시그모이드 함수 적용
-            predictions, label_ids, _ = trainer.predict(test_dataset)
-            sigmoid = torch.nn.Sigmoid()
-            threshold_values = sigmoid(torch.Tensor(predictions))
-
-            # 각 클래스별로 임계값 적용하여 outputs 생성
-            outputs = []
-            for thresholded in threshold_values:
-                output = []
-                for jdx, value in enumerate(thresholded):
-                    output.append(float(value) >= threshold_dict.get(jdx, 0.5))
-                outputs.append(output)
-
-            # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
-
-            j_list = jsonlload("/home/nlpgpu9/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
-
-            for idx, oup in enumerate(outputs):
-                j_list[idx]["output"] = {}
-
-                # oup에서 True 또는 1인 값의 개수를 확인
-                true_count = sum(oup)
-
-                            
-                if not any(oup):
-                    max_index = threshold_values[idx].argmax().item()
-                    oup[max_index] = True
-
-                for jdx, v in enumerate(oup):
-                    j_list[idx]["output"][id2label[jdx]] = ["True" if v else "False", threshold_values[idx][jdx].item()]
-        
-            jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
-
 
     model = AutoModelForSequenceClassification.from_pretrained(
         "/home/nlpgpu9/data/hufs/dhk/outputs/twhinbert_large__50_0.001/checkpoint-13639",

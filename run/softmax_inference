@@ -281,7 +281,7 @@ def main(args):
 
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_ckpt_path,
+        "/home/nlpgpu9/data/hufs/dhk/outputs/twhinbert_large__50_0.001/checkpoint-13639",
         problem_type="multi_label_classification",
         num_labels=len(labels),
         id2label=id2label,

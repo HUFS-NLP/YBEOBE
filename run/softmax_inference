@@ -279,11 +279,14 @@ def main(args):
         
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
 
-            output_path = f"{args.output_dir}epoch_{state.epoch}_model_path_pretrained"
-            os.makedirs(output_path, exist_ok=True)
-            model.save_pretrained(output_path)
 
-    
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_ckpt_path,
+        problem_type="multi_label_classification",
+        num_labels=len(labels),
+        id2label=id2label,
+        label2id=label2id
+    )
 
     trainer = CustomTrainer(
         model,
@@ -293,14 +296,6 @@ def main(args):
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
         callbacks=[TestInferenceCallback()]
-    )
-
-    model = AutoModelForSequenceClassification.from_pretrained(
-        args.model_ckpt_path,
-        problem_type="multi_label_classification",
-        num_labels=len(labels),
-        id2label=id2label,
-        label2id=label2id
     )
 
 

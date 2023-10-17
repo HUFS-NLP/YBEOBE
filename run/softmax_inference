@@ -248,7 +248,7 @@ def main(args):
             }
             # 예측값에 시그모이드 함수 적용
             predictions, label_ids, _ = trainer.predict(test_dataset)
-            sigmoid = torch.nn.Softmax()
+            sigmoid = torch.nn.Sigmoid()
             threshold_values = sigmoid(torch.Tensor(predictions))
 
             # 각 클래스별로 임계값 적용하여 outputs 생성

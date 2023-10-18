@@ -165,12 +165,20 @@ def main(args):
         )
 
 
-    # def custom_optimizer(model):  # 나중에 모델 별로 학습률 다르게 할 때 추가
-    #     return Adam([
-    #         {'params': model.model.parameters(), 'lr': 1e-5},  # 사전학습된 모델
-    #         {'params': model.bi_lstm.parameters(), 'lr': 1e-3},  # 양방향 LSTM
-    #         {'params': model.linear.parameters(), 'lr': 1e-3}  # 선형 레이어
-    #     ])
+    class CustomTrainer(Trainer):
+        def create_optimizer_and_scheduler(self, num_training_steps: int):
+            self.optimizer = AdamW([
+            {'params': self.model.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay},
+            {'params': self.model.bi_lstm.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
+            {'params': self.model.linear.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
+            {'params': self.model.gate_linear.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3}
+        ])
+
+            self.lr_scheduler = get_linear_schedule_with_warmup(
+                self.optimizer, 
+                num_warmup_steps=self.args.warmup_steps,  # 1700
+                num_training_steps=num_training_steps  # 17768
+            )
     
 
     targs = TrainingArguments(
@@ -289,7 +297,7 @@ def main(args):
 
     
 
-    trainer = Trainer(  # or loss_function_Trainer
+    trainer = CustomTrainer(  # or loss_function_Trainer
         model,
         targs,
         train_dataset=encoded_tds,

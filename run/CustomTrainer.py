@@ -1,4 +1,5 @@
-# 윈디, 샤비
+# 윈디, 샤비: lr, weight_decay 다르게
+# 조로아크: lr만 다르게
 class CustomTrainer(Trainer):
         def create_optimizer_and_scheduler(self, num_training_steps: int):
             self.optimizer = AdamW([
@@ -11,6 +12,22 @@ class CustomTrainer(Trainer):
                 self.optimizer,
                 num_warmup_steps=self.args.warmup_steps,
                 num_training_steps=num_training_steps
+            )
+
+
+# 꼬링크, test2, 수댕이, 갸라도스
+    class CustomTrainer(Trainer):
+        def create_optimizer_and_scheduler(self, num_training_steps: int):
+            self.optimizer = AdamW([
+            {'params': self.model.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay},  # 1e-5, 5e-4
+            {'params': self.model.bi_lstm.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
+            {'params': self.model.linear.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
+        ])
+
+            self.lr_scheduler = get_linear_schedule_with_warmup(
+                self.optimizer, 
+                num_warmup_steps=self.args.warmup_steps,  # 1700
+                num_training_steps=num_training_steps  # 17768
             )
 
 
@@ -32,17 +49,3 @@ class CustomTrainer(Trainer):
                 self.lr_scheduler.step(f1_score)
               
 
-# 꼬링크, test2, 수댕이, 갸라도스
-    class CustomTrainer(Trainer):
-        def create_optimizer_and_scheduler(self, num_training_steps: int):
-            self.optimizer = AdamW([
-            {'params': self.model.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay},  # 1e-5, 5e-4
-            {'params': self.model.bi_lstm.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
-            {'params': self.model.linear.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
-        ])
-
-            self.lr_scheduler = get_linear_schedule_with_warmup(
-                self.optimizer, 
-                num_warmup_steps=self.args.warmup_steps,  # 1700
-                num_training_steps=num_training_steps  # 17768
-            )

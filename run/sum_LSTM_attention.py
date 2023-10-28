@@ -186,7 +186,7 @@ lass LSTM_attention(nn.Module):
 
 # 찌르호크
 # 데이터 전처리 단계도 달라짐
-# train 일부부
+# train 일부분분
     def preprocess_data(examples):
         # take a batch of texts
         text1 = examples["input"]["form"]

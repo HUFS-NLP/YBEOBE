@@ -103,6 +103,7 @@ class LSTM_attention(nn.Module):
 
 
 # 찌르버드, 찌르호크, 조로아크
+# 찌르버드, 찌르호크는 F.scaled_dot_product_attention(query, lstm_out, lstm_out, dropout_p=0.1)에서 dropout_p 부분 빠짐
 class LSTM_attention(nn.Module):
     def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
         super(LSTM_attention, self).__init__()
@@ -126,7 +127,7 @@ class LSTM_attention(nn.Module):
         target_indices = (token_type_ids == 1).nonzero(as_tuple=True)[1]  # token_type_ids == 1인 것이 타겟. [0]은 배치 기준, [1]은 문장 기준
         query = lstm_out[:, target_indices, :]  # [배치 크기, 타겟 길이, 임베딩 차원]
 
-        attn_output = F.scaled_dot_product_attention(query, lstm_out, lstm_out)  # query[배치 크기, 타겟 길이, 임베딩 차원], key[배치 크기, 문장 길이, 임베딩 차원], value[배치 크기, 문장 길이, 임베딩 차원]
+        attn_output = F.scaled_dot_product_attention(query, lstm_out, lstm_out, dropout_p=0.1)  # query[배치 크기, 타겟 길이, 임베딩 차원], key[배치 크기, 문장 길이, 임베딩 차원], value[배치 크기, 문장 길이, 임베딩 차원]
         attn_output = attn_output.mean(dim=1)  # 문장 기준 평균 내서 h_n과 차원 맞추기
 
         combined_output = h_n + attn_output  # 합치기(여러 방식 있지만 지금은 단순 더하기)

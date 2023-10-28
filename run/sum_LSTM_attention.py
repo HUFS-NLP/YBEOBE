@@ -185,3 +185,82 @@ lass LSTM_attention(nn.Module):
 
 
 # 찌르호크
+# 데이터 전처리 단계도 달라짐
+# train 일부부
+    def preprocess_data(examples):
+        # take a batch of texts
+        text1 = examples["input"]["form"]
+        text2 = examples["input"]["target"]["form"]
+        target_begin = examples["input"]["target"].get("begin")
+        target_end = examples["input"]["target"].get("end")
+
+        # encode them
+        encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
+        # add labels
+        if examples["output"] != "":
+            encoding["labels"] = [0.0] * len(labels)
+            for key, idx in label2id.items():
+                if examples["output"][key] == 'True':
+                    encoding["labels"][idx] = 1.0
+
+        if text2 != None:
+            encoded_target = tokenizer(text2, add_special_tokens=False)["input_ids"]
+            encoded_text = tokenizer(text1, add_special_tokens=False)["input_ids"]
+            
+            for i in range(len(encoded_text) - len(encoded_target) + 1):
+                if encoded_text[i:i+len(encoded_target)] == encoded_target:
+                    target_begin = i + 1
+                    target_end = i + len(encoded_target) + 1
+                    break
+        else:
+            target_begin, target_end = -1, -1
+
+        encoding["target_positions"] = target_begin, target_end
+        
+        return encoding
+        
+class LSTM_attention(nn.Module):
+    def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
+        super(LSTM_attention, self).__init__()
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_path,
+                                                                              output_hidden_states=True,
+                                                                              problem_type="multi_label_classification", 
+                                                                              num_labels=num_labels,
+                                                                              id2label=id2label,
+                                                                              label2id=label2id)  
+                                                                                    
+        self.bi_lstm = nn.LSTM(768, 128, bidirectional=True, batch_first=True)
+        self.linear = nn.Linear(256, num_labels)
+        self.num_labels = num_labels
+
+    def forward(self, input_ids, attention_mask, target_positions, token_type_ids=None, labels=None):
+        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels).hidden_states[-1]
+        lstm_out, (h_n, c_n) = self.bi_lstm(outputs)
+        h_n = torch.cat((h_n[-2,:,:], h_n[-1,:,:]), dim=1)
+        
+        attn_outputs = torch.zeros(lstm_out.size(0), lstm_out.size(2)).to(lstm_out.device)
+        
+        for i in range(lstm_out.size(0)):
+            if np.array_equal(target_positions[i], np.array([-1, -1])):
+                query = lstm_out[i, target_positions[i], :]
+            else:
+                query = lstm_out
+            
+            query = query.unsqueeze(0)
+            
+            attn_output = F.scaled_dot_product_attention(query=query, key=lstm_out[i].unsqueeze(0), value=lstm_out[i].unsqueeze(0))
+            attn_output = attn_output.mean(dim=1).squeeze(0)
+            attn_output = attn_output.mean(dim=0)
+            attn_outputs[i] = attn_output
+
+        combined_output = h_n + attn_outputs
+
+        logits = self.linear(combined_output)
+            
+        if labels != None:
+            loss_fct = nn.BCEWithLogitsLoss()
+            loss = loss_fct(logits, labels.float())
+            return loss, logits
+        
+        else:
+            return logits

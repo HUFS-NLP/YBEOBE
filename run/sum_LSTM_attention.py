@@ -102,8 +102,7 @@ class LSTM_attention(nn.Module):
 
 
 
-# 찌르버드, 찌르호크, 조로아크
-# 찌르버드, 찌르호크는 F.scaled_dot_product_attention(query, lstm_out, lstm_out, dropout_p=0.1)에서 dropout_p 부분 빠짐
+# 조로아크
 class LSTM_attention(nn.Module):
     def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
         super(LSTM_attention, self).__init__()
@@ -141,3 +140,46 @@ class LSTM_attention(nn.Module):
         
         else:  # 평가일 경우
             return logits
+
+# 찌르버드: token_type_ids로 타겟 받아왔었음. 그리고 max seq가 128
+lass LSTM_attention(nn.Module):
+    def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
+        super(LSTM_attention, self).__init__()
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_path,
+                                                                        output_hidden_states=True,
+                                                                        problem_type="multi_label_classification", 
+                                                                        num_labels=num_labels,
+                                                                        id2label=id2label,
+                                                                        label2id=label2id)        
+                                                               
+        self.bi_lstm = nn.LSTM(768, 128, bidirectional=True, batch_first=True)  # AutoModelForSequenceClassification의 차원 768
+        self.dropout = nn.Dropout(0.1)
+        self.linear = nn.Linear(256, num_labels)
+        self.num_labels = num_labels
+
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None):
+   
+        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, labels=labels).hidden_states[-1]
+       
+        lstm_out, (h_n, _) = self.bi_lstm(outputs)
+        h_n = torch.cat((h_n[-2,:,:], h_n[-1,:,:]), dim=1)  # [num_directions, batch_size, hidden_size]
+
+        target_indices = (token_type_ids == 1).nonzero(as_tuple=True)[1]  # target_positions == 1인 것이 타겟. [0]은 배치 기준, [1]은 문장 기준 # 잘못된 것 같은데?
+        query = lstm_out[:, target_indices, :]  # [배치 크기, 타겟 길이, 임베딩 차원]
+
+        attn_output = F.scaled_dot_product_attention(query, lstm_out, lstm_out)  # query[배치 크기, 타겟 길이, 임베딩 차원], key[배치 크기, 문장 길이, 임베딩 차원], value[배치 크기, 문장 길이, 임베딩 차원]
+        attn_output = attn_output.mean(dim=1)  # 문장 기준 평균 내서 h_n과 차원 맞추기
+        combined_output = h_n + attn_output		# 단순 더하기
+
+        logits = self.linear(combined_output)  # linear 통과 시켜서 라벨 개수(8)로 바꾸기
+            
+        if labels != None:  # 학습일 경우
+            loss_fct = nn.BCEWithLogitsLoss()
+            loss = loss_fct(logits, labels.float())  # 라벨 실수 형태로 받아왔었기 때문에 float
+            return loss, logits
+        
+        else:  # 평가일 경우
+            return logits
+
+
+# 찌르호크

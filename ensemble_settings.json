@@ -1,0 +1,47 @@
+{
+    "디아루가_v5": {
+        "composition": ["펄기아_v4.jsonl", "파이리_v4.jsonl"]
+    },
+    "output_top_14": {
+        "composition": ["펄기아_v3.jsonl", "펄기아_v4.jsonl", "이상해풀_v7.jsonl", "파이리_v4.jsonl", "디아루가_v5.jsonl", "꼬마돌_v1.jsonl", "리자몽_v2.jsonl", "리자몽_v3.jsonl", "가라도스_v1.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "럭시오_v1.jsonl"]
+    },
+    "output_top_9": {
+        "composition": ["펄기아_v4.jsonl", "디아루가_v5.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "럭시오_v1.jsonl"]
+    },
+    "ej_v3": {
+        "composition": ["꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "파이리_v4.jsonl", "펄기아_v4.jsonl", "이상해풀_v7.jsonl", "꼬렛_v1.jsonl", "조로아크_v5.jsonl", "test_T5.jsonl", "test_EMO.jsonl"]
+    },
+    "오박사": {
+        "composition": ["꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "파이리_v4.jsonl", "리자몽_v3.jsonl", "펄기아_v4.jsonl", "이상해풀풀_v7.jsonl", "꼬렛_v1.jsonl", "주리비얀_v2.jsonl", "조로아크_v5.jsonl", "꼬마돌_v1.jsonl", "샤비_v1.jsonl"]
+    },
+    "t9_new_voting": {
+        "composition": ["펄기아_v4.jsonl", "디아루가_v5.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "럭시오_v1.jsonl"]
+    },
+    "토게피_v7": {
+        "composition": ["펄기아_v4.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "럭시오_v1.jsonl", "t9_new_voting.jsonl"]
+    },
+    "토게피_v8": {
+        "composition": ["펄기아_v3.jsonl", "펄기아_v4.jsonl", "파이리_v4.jsonl", "이상해풀풀_v7.jsonl", "꼬렛_v1.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "이상해씨_v2.jsonl", "토게피_v7.jsonl"]
+    },
+    "only": {
+        "composition": ["이상해씨_v2.jsonl", "파이리_v2.jsonl", "파이리_v2.jsonl", "찌르버드_v2.jsonl", "찌르호크_v1.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "이브이_v1.jsonl", "이브이_v1.jsonl", "펄기아_v4.jsonl", "펄기아_v4.jsonl", "펄기아_v4.jsonl", "이상해풀_v6.jsonl", "주리비얀_v2.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "식스테일_v5.jsonl", "윈디_v1.jsonl", "샤비_v1.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "리자드_v1.jsonl", "리자드_v1.jsonl", "나옹_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "갸라도스_v2.jsonl", "꼬렛_v2.jsonl", "수댕이_v1.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "test2.jsonl", "test2.jsonl", "찌리리공.jsonl", "찌리리공.jsonl", "토게피_v8.jsonl"]
+    },
+    "뮤츠_v1": {
+        "composition": ["이상해씨_v2.jsonl", "파이리_v2.jsonl", "찌르버드_v2.jsonl", "찌르호크_v1.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "이브이_v1.jsonl", "이브이_v1.jsonl", "펄기아_v4.jsonl", "펄기아_v4.jsonl", "이상해풀_v6.jsonl", "주리비얀_v2.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "식스테일_v5.jsonl", "윈디_v1.jsonl", "샤비_v1.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "리자드_v1.jsonl", "나옹_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "갸라도스_v2.jsonl", "꼬렛_v2.jsonl", "수댕이_v1.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "test2.jsonl", "test2.jsonl", "찌리리공.jsonl", "찌리리공.jsonl", "토게피_v8.jsonl"]
+    },
+    "마이볼": {
+        "composition": ["이브이_v1.jsonl", "펄기아_v4.jsonl", "갸라도스_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v2.jsonl", "찌리리공.jsonl", "output_top_9.jsonl", "output_top_14.jsonl"]
+    },
+    "넷볼": {
+        "composition": ["ej_v3.jsonl", "마이볼.jsonl", "오박사.jsonl"]
+    },
+    "플랑크톤": {
+        "composition": ["이상해씨_v2.jsonl", "파이리_v2.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "조로아크_v5.jsonl", "이브이_v1.jsonl", "이브이_v1.jsonl", "펄기아_v4.jsonl", "펄기아_v4.jsonl", "이상해풀_v6.jsonl", "주리비얀_v2.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "파이리_v4.jsonl", "식스테일_v5.jsonl", "윈디_v1.jsonl", "샤비_v1.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "이상해풀풀_v7.jsonl", "리자드_v1.jsonl", "나옹_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬렛_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "꼬마돌_v1.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "리자몽_v3.jsonl", "갸라도스_v2.jsonl", "꼬렛_v2.jsonl", "수댕이_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "꼬링크_v1.jsonl", "test2.jsonl", "test2.jsonl", "찌리리공.jsonl", "찌리리공.jsonl", "마이볼.jsonl", "넷볼.jsonl", "토게피_v8.jsonl"]
+    },
+    "뮤츠_v2": {
+        "composition": ["꼬링크_v1.jsonl", "리자몽_v3.jsonl", "펄기아_v4.jsonl", "이상해풀풀_v7.jsonl", "꼬렛_v1.jsonl", "꼬마돌_v1.jsonl", "only.jsonl", "뮤츠_v1.jsonl", "토게피_v8.jsonl", "ej_v3.jsonl", "마이볼.jsonl", "넷볼.jsonl", "플랑크톤.jsonl"]
+    },
+    "temp_넷볼": {
+        "composition": ["오박사.jsonl", "ej_v3.jsonl", "마이볼.jsonl"]
+    }
+}

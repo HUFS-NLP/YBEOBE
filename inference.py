@@ -1,7 +1,5 @@
 import json
 import torch
-import subprocess
-import sys
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -9,9 +7,6 @@ from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, EvalPrediction, Trainer, BertConfig
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, confusion_matrix, precision_score, recall_score, average_precision_score
 from run.LSTM_attention import *
-
-# # 필요한 라이브러리 설치
-# subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
 # config 불러옴
 with open('inference_settings.json', 'r', encoding='utf-8') as f:
@@ -196,7 +191,7 @@ def pth_inference(model_name):
 
     # tokenizer 불러옴
     twhin_list = ["가라도스_v1", "갸라도스_v2", "수댕이_v1", "꼬링크_v1", "꼬링크_v2", "럭시오_v1", "test2"]
-    kc_list = ["찌르버드_v2", "찌르호크_v1", "조로아크_v5", "윈디_v1", "샤비_v1", "꼬렛_v1", "꼬렛_v2"]
+    kc_list = ["찌르버드_v2", "찌르호크_v1", "조로아크_v5", "윈디_v1", "샤비_v1"]
 
     if model_name in twhin_list:
         tokenizer = AutoTokenizer.from_pretrained("Twitter/twhin-bert-large")
@@ -369,8 +364,6 @@ def pth_inference(model_name):
         model = hawk_LSTM_attention(**common_params)
     elif model_name == "조로아크_v5":
         model = ark_LSTM_attention(**common_params)
-    if model_name in ["꼬렛_v1", "꼬렛_v2"]:
-        model = AutoModelForSequenceClassification.from_pretrained(**common_params)
 
     # saved_state_dict = torch.load(model_path)
     # model_state_dict = model.state_dict()
@@ -634,7 +627,7 @@ def palkia_inference(model_name="펄기아_v4"):
     jsonldump(j_list, output_path)
 
 # general_inference("test_T5")
-# pth_inference("test2")
+pth_inference("test2")
 # pth_inference("가라도스_v1")
 # pth_inference("갸라도스_v2")
 # pth_inference("꼬링크_v1")
@@ -662,7 +655,6 @@ def palkia_inference(model_name="펄기아_v4"):
 # general_inference("파이리_v4")
 # palkia_inference("펄기아_v3")
 # palkia_inference("펄기아_v4")
-pth_inference("꼬렛_v1")
 
 """
 size mismatch for model.bert.pooler.dense.bias: copying a param with shape torch.Size([1024]) from checkpoint, the shape in current model is torch.Size([768]).

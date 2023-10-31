@@ -8,6 +8,9 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Eval
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, confusion_matrix, precision_score, recall_score, average_precision_score
 from run.LSTM_attention import *
 
+# # 필요한 라이브러리 설치
+subprocess.check_call(["conda", "create", "--name", "YBEOBE", "--file", "requirements.txt", "--yes"])
+
 # config 불러옴
 with open('inference_settings.json', 'r', encoding='utf-8') as f:
     config = json.load(f)

@@ -136,7 +136,7 @@
         "num_beams": 3
     },
     "꼬렛_v1": {
-        "model_ckpt_path": "models/꼬렛_v1",
+        "model_ckpt_path": "models/꼬렛_v1.pth",
         "output_path": "outputs/꼬렛_v1.jsonl",
         "batch_size": 128,
         "max_seq_length": 218,

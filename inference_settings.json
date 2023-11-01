@@ -147,7 +147,7 @@
         "model_ckpt_path": "models/꼬마돌_v1",
         "output_path": "outputs/꼬마돌_v1.jsonl",
         "batch_size": 32,
-        "max_seq_length": 200,
+        "max_seq_length": 218,
         "threshold": 0.5,
         "num_beams": 3
     },
@@ -219,7 +219,7 @@
         "model_ckpt_path": "models/럭시오_v1.pth",
         "output_path": "outputs/럭시오_v1.jsonl",
         "batch_size": 64,
-        "max_seq_length": 200,
+        "max_seq_length": 218,
         "threshold": 0.5,
         "num_beams": 3
     },

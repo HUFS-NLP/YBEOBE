@@ -344,8 +344,8 @@ def main(output_dir, model_path, tokenizer, max_seq_len, batch_size, valid_batch
             }
             # 예측값에 시그모이드 함수 적용
             predictions, label_ids, _ = trainer.predict(test_dataset)
-            Softmax = torch.nn.Softmax()
-            threshold_values = Softmax(torch.Tensor(predictions))
+            Sigmoid = torch.nn.Sigmoid()
+            threshold_values = Sigmoid(torch.Tensor(predictions))
 
             # 각 클래스별로 임계값 적용하여 outputs 생성
             outputs = []

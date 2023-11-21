@@ -330,18 +330,6 @@ def main(output_dir, model_path, tokenizer, max_seq_len, batch_size, valid_batch
                 compute_metrics=compute_metrics
             )
         
-        
-            # 각 클래스별 임계값 설정
-            threshold_dict = {
-                0: 0.5, #joy
-                1: 0.5, #anticipation
-                2: 0.5, #trust
-                3: 0.5, #surprise
-                4: 0.5, #disgust
-                5: 0.5, #fear
-                6: 0.5, #anger
-                7: 0.5 #sadness
-            }
             # 예측값에 시그모이드 함수 적용
             predictions, label_ids, _ = trainer.predict(test_dataset)
             Sigmoid = torch.nn.Sigmoid()
@@ -352,7 +340,7 @@ def main(output_dir, model_path, tokenizer, max_seq_len, batch_size, valid_batch
             for thresholded in threshold_values:
                 output = []
                 for jdx, value in enumerate(thresholded):
-                    output.append(float(value) >= threshold_dict.get(jdx, 0.5))
+                    output.append(float(value) >= 0.5)
                 outputs.append(output)
 
             # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.

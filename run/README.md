@@ -1,5 +1,5 @@
 ## BiLSTM + attention
-- target을 query, key와 value를 text로 하는 scaled dot-product attention 도입
+- query가 target, key와 value가 text인 scaled dot-product attention 도입
 
 ## threshold 최적화
 - 정밀도-재현율 곡선을 이용하여 각각의 감정 라벨에 대해 개별적인 threshold 값 설정

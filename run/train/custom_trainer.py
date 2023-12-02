@@ -1,8 +1,5 @@
 from torch.optim import AdamW
-from transformers import (
-    Trainer,
-    get_linear_schedule_with_warmup,
-    )
+from transformers import Trainer, get_linear_schedule_with_warmup
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from train.ASL_loss import *
 
@@ -24,7 +21,7 @@ class ChangeLRWD(Trainer):
 
 
 # 학습률 스케줄러 변경
-class CustomTrainer(Trainer):
+class ChangeLRscheduler(Trainer):
         def create_optimizer_and_scheduler(self, num_training_steps: int):
             self.optimizer = AdamW([
                 {'params': self.model.parameters(), 'lr': 4e-5, 'weight_decay': 0.005}

@@ -72,7 +72,13 @@ def main(args):
     valid_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-dev.jsonl")
     test_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
 
-    labels = list(train_ds["output"][0].keys())
+    if args.model_choice == "SpanEMO":
+        if args.model_path == "Twitter/twhin-bert-large":
+            labels = ['▁행복한', '▁기대', '▁신뢰', '▁놀라운', '▁싫어', '겁', '▁화', '▁눈물']
+        else:
+            labels = ['기쁜', '기대', '믿는', '놀라운', '싫은', '두려운', '화', '슬픈']
+    else:
+        labels = list(train_ds["output"][0].keys())
     id2label = {idx:label for idx, label in enumerate(labels)}
     label2id = {label:idx for idx, label in enumerate(labels)}
     with open(os.path.join(args.output_dir, "label2id.json"), "w") as f:

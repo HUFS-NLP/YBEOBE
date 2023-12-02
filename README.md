@@ -1,27 +1,28 @@
-# YBEOBE
+# 야부엉외부엉 YBEOBE
+<img width="60%" src="https://github.com/JuaeKim54/YBEOBE/assets/140517360/77f9c577-723c-4b7e-a845-532d5927fb0b"/>
+본 리포지토리는 2023 국립국어원 인공 지능 언어 능력 평가 중 감정 분석 과제 '야부엉외부엉' 팀의 모델 및 해당 모델의 재현을 위한 소스 코드를 포함하고 있습니다.
 
-<img width="40%" src="https://github.com/JuaeKim54/YBEOBE/assets/140517360/77f9c577-723c-4b7e-a845-532d5927fb0b"/>
+## Directory Structue
+```
+data
+└── analysis.ipynb
 
-## 1. 모델 다운로드
-- 링크: https://drive.google.com/file/d/1cRyBTH3vuFYAlRrR9L_TFjQClchDOfo_/view?usp=sharing
+run
+├── infernece  # 대회 제출 모델 재현
+    ├── inference.py
+    └── ensemble.py
+└── train  # 모델 학습
+    ├── train.py
+    └── LSTM_attention.py
+    └── SpamEMO.py
 
-## 2. 모델 압축 해제
-- 소스코드가 설치된 폴더에서 위 링크를 압축해제하면 models 폴더가 생김
-- 해당 models 폴더를 https://github.com/JuaeKim54/YBEOBE 아래에 위치시킴
+# Python dependency file
+requirements.txt
+```
 
-## 3. 아래 코드 실행
-- train_and_inference_testEmo.py
-- train_and_inference_찌리리공.py
-- train_and_inference_꼬렛_v1.py
-- train_and_inference_꼬렛_v2.py
 
-- 실행시 test_EMO, 찌리리공, 꼬렛_v1, 꼬렛_v2 모델들이 학습되고, 추론된 결과 jsonl 파일들이 outputs 폴더 안에 생성됨
-
-## 4. inference.py 코드 실행
-- 실행시 각 단일모델의 추론 결과 jsonl 파일들이 outputs 폴더 안에 생성됨
-
-## 5. ensemble.py 코드 실행
-- 실행 시 단계별로 앙상블 실행 및 결과 jsonl 파일들이 outputs 폴더 안에 생성됨
-
-## 6. (1) outputs 폴더의 힐볼.jsonl 제출 시 순위표(리더보드)에 성적 반영
-## 6. (2) outputs 폴더의 뮤츠_v2.jsonl 제출 시 순위표(리더보드)에 성적 반영
+### Reference
+국립국어원 모두의말뭉치 (https://corpus.korean.go.kr/)
+TwHIN-BERT (https://huggingface.co/Twitter/twhin-bert-large)
+KcELECTRA (https://huggingface.co/beomi/KcELECTRA-base-v2022)
+pko-T5 (https://huggingface.co/paust/pko-t5-base)

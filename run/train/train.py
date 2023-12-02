@@ -25,7 +25,7 @@ from train.SpanEMO import *
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
 
 g = parser.add_argument_group("Common Parameter")
-g.add_argument("--output-dir", type=str, default="/home/nlpgpu7/ellt/eojin/EA/", help="output directory path to save artifacts")
+g.add_argument("--output-dir", type=str, default="/YBEOBE/models/", help="output directory path to save artifacts")
 g.add_argument("--model-path", type=str, default="beomi/KcELECTRA-base-v2022", help="model file path")
 g.add_argument("--tokenizer", type=str, default="beomi/KcELECTRA-base-v2022", help="huggingface tokenizer path")
 g.add_argument("--max-seq-len", type=int, default=200, help="max sequence length")
@@ -67,9 +67,9 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     logger.info(f'[+] Load Dataset')
-    train_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-train_수정_중복제거.jsonl")
-    valid_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-dev_수정.jsonl")
-    test_ds = Dataset.from_json("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
+    train_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-train.jsonl")
+    valid_ds = Dataset.from_json("/YBEOBE/data//nikluge-ea-2023-dev.jsonl")
+    test_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
 
     labels = list(train_ds["output"][0].keys())
     id2label = {idx:label for idx, label in enumerate(labels)}
@@ -267,7 +267,7 @@ def main(args):
             threshold_values = sigmoid(torch.Tensor(predictions))
             outputs = (threshold_values >= 0.5).tolist()
         
-            j_list = jsonlload("/home/nlpgpu7/ellt/eojin/EA/nikluge-ea-2023-test_수정.jsonl")
+            j_list = jsonlload("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
             
             for idx, oup in enumerate(outputs):
                 j_list[idx]["output"] = {}

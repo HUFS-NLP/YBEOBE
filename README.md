@@ -9,6 +9,7 @@ data
 └── analysis.ipynb
 
 run
+└── requirements.txt
 ├── infernece  # 대회 제출 모델 재현
     ├── inference.py
     └── ensemble.py
@@ -16,9 +17,6 @@ run
     ├── train.py
     └── LSTM_attention.py
     └── SpamEMO.py
-
-# Python dependency file
-requirements.txt
 ```
 
 

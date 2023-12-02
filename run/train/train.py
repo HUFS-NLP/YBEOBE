@@ -5,10 +5,7 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
-from torch.optim import Adam
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
@@ -16,7 +13,6 @@ from transformers import (
     Trainer,
     EvalPrediction,
     AutoConfig,
-    AutoModel,
     TrainerCallback
     )
 
@@ -82,7 +78,7 @@ def main(args):
         json.dump(label2id, f)
 
     def preprocess_data(examples):
-        if args.model_choice == SpanEMO: 
+        if args.model_choice == "SpanEMO": 
           text1 = '행복한 기대하는 신뢰하는 놀라운 싫어하는 겁나는 화나는 눈물나는 감정이 든다'
           text2 = examples["input"]["form"]
 
@@ -153,20 +149,10 @@ def main(args):
     encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)
 
     logger.info(f'[+] Load Model from "{args.model_path}"')
-
-
-    # config = AutoConfig.from_pretrained(args.model_path)
-    # config.output_hidden_states = True
-    # config.problem_type = "multi_label_classification"
-    # config.num_labels = len(labels)
-    # config.id2label = id2label
-    # config.label2id = label2id
-    # config.hidden_dropout_prob = 0.5
-   
         
     model_choices = {
-                    "LSTM_attention": LSTM_attention,
-                    "SpanEMO": SpanEMO
+                    "LSTM_attention": LSTMAttention,
+                    "SpanEMO": SpanEmo
                     }
 
     common_params = {
@@ -187,7 +173,6 @@ def main(args):
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
         args.model_path, 
-        # config=config
         problem_type="multi_label_classification",
         num_labels=len(labels),
         id2label=id2label,
@@ -259,11 +244,13 @@ def main(args):
             j_list = [json.loads(line) for line in lines]
         return j_list
 
+    
     def jsonldump(j_list, fname):
         with open(fname, "w", encoding='utf-8') as f:
             for json_data in j_list:
                 f.write(json.dumps(json_data, ensure_ascii=False)+'\n')
 
+    
     class TestInferenceCallback(TrainerCallback):
         def on_epoch_end(self, args, state, control, model=None, **kwargs):
             logger.info("Epoch ended. Running inference on test set...")
@@ -309,7 +296,6 @@ def main(args):
         
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
 
-    
 
     trainer = Trainer(
         model,

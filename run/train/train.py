@@ -38,7 +38,11 @@ g.add_argument("--epochs", type=int, default=30, help="the numnber of training e
 g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning rate")
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
-g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassification", help="or LSTM_attention or SpanEMO", choices=['AutoModelForSequenceClassification', 'LSTM_attention', 'SpanEMO'])
+g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassification", help="or LSTM_attention or SpanEMO", 
+                                                                                        choices=['AutoModelForSequenceClassification', 
+                                                                                                'LSTM_attention', 
+                                                                                                'SpanEMO', 
+                                                                                                "ASL_loss"])
 
 
 def main(args):
@@ -313,7 +317,10 @@ def main(args):
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
 
 
-    trainer = Trainer(
+    trainer_class = LossFunctionTrainer if args.model_choice == "ASL_loss" else Trainer
+
+    # Trainer 객체 생성
+    trainer = trainer_class(
         model,
         targs,
         train_dataset=encoded_tds,

@@ -7,9 +7,9 @@ import numpy as np
 import random
 
 
-class LSTM_attention(nn.Module):
+class LSTMAttention(nn.Module):
     def __init__(self, model_path, output_hidden_states, problem_type, num_labels, id2label, label2id):
-        super(original_LSTM_attention, self).__init__()
+        super(LSTMAttention, self).__init__()
         config = AutoConfig.from_pretrained(model_path)
         config.output_hidden_states = True
         config.problem_type = "multi_label_classification"

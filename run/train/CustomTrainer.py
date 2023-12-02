@@ -1,6 +1,14 @@
-# 윈디, 샤비: lr, weight_decay 다르게
-# 조로아크: lr만 다르게
-class CustomTrainer(Trainer):
+from torch.optim import AdamW
+from transformers import (
+    Trainer,
+    get_linear_schedule_with_warmup,
+    )
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from train.ASL import *
+
+
+# learning rate와 weight decay 다르게 설정
+class ChangeLRWD(Trainer):
         def create_optimizer_and_scheduler(self, num_training_steps: int):
             self.optimizer = AdamW([
                 {'params': self.model.model.parameters(), 'lr': 4e-5, 'weight_decay': 0.005},
@@ -15,27 +23,11 @@ class CustomTrainer(Trainer):
             )
 
 
-# 꼬링크, 럭시오, 수댕이, 갸라도스
+# 학습률 스케줄러 변경
 class CustomTrainer(Trainer):
         def create_optimizer_and_scheduler(self, num_training_steps: int):
             self.optimizer = AdamW([
-            {'params': self.model.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay},  # 1e-5, 5e-4
-            {'params': self.model.bi_lstm.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
-            {'params': self.model.linear.parameters(), 'lr': 1e-3, 'weight_decay': 5e-3},
-        ])
-
-            self.lr_scheduler = get_linear_schedule_with_warmup(
-                self.optimizer, 
-                num_warmup_steps=self.args.warmup_steps,  # 1700
-                num_training_steps=num_training_steps  # 17768
-            )
-
-
-# 학습률 스케줄러 ReduceLROnPlateau
-class CustomTrainer(Trainer):
-        def create_optimizer_and_scheduler(self, num_training_steps: int):
-            self.optimizer = AdamW([
-                {'params': self.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay}
+                {'params': self.model.parameters(), 'lr': 4e-5, 'weight_decay': 0.005}
             ])
 
         # Initialize the ReduceLROnPlateau scheduler
@@ -47,5 +39,17 @@ class CustomTrainer(Trainer):
             if f1_score is not None:
                 # Update the learning rate
                 self.lr_scheduler.step(f1_score)
+
+
+# 손실함수 변경
+class LossFunctionTrainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs["labels"]
+        outputs = model(**inputs)
+        logits = outputs['logits']
+        loss_fct = AsymmetricLoss()
+        #loss_fct = nn.BCEWithLogitsLoss() 
+        loss = loss_fct(logits, labels.float())
+        return (loss, outputs) if return_outputs else loss
               
 

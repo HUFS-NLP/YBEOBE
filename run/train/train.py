@@ -20,6 +20,8 @@ from datasets import Dataset
 from sklearn.metrics import f1_score, roc_auc_score, accuracy_score, confusion_matrix, precision_score, recall_score
 from train.LSTM_attention import *
 from train.SpanEMO import *
+from train.ASL_loss import *
+from train.custom_trainer import *
 
 
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
@@ -40,8 +42,6 @@ g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassifi
 
 
 def main(args):
-    # device
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger = logging.getLogger("train")
     logger.propagate = False
     logger.setLevel(logging.DEBUG)
@@ -78,23 +78,39 @@ def main(args):
         json.dump(label2id, f)
 
     def preprocess_data(examples):
-        if args.model_choice == "SpanEMO": 
-          text1 = '행복한 기대하는 신뢰하는 놀라운 싫어하는 겁나는 화나는 눈물나는 감정이 든다'
-          text2 = examples["input"]["form"]
+        if args.model_choice == "SpanEMO":
+            if args.model_path == "Twitter/twhin-bert-large":
+                text1 = '행복한 기대하는 신뢰하는 놀라운 싫어하는 겁나는 화나는 눈물나는 감정이 든다'
+                text2 = examples["input"]["form"]
+
+                key_mapping = {
+                    "joy": "▁행복한",
+                    "anticipation": "▁기대",
+                    "trust": "▁신뢰",
+                    "surprise": "▁놀라운",
+                    "disgust": "▁싫어",
+                    "fear": "겁",
+                    "anger": "▁화",
+                    "sadness": "▁눈물"
+                }
+            else:
+                text1 = '기쁜 기대하는 믿는 놀라운 싫은 두려운 화난 슬픈 감정이 든다'
+                text2 = examples["input"]["form"]               
+
+                key_mapping = {
+                    "joy": "기쁜",
+                    "anticipation": "기대",
+                    "trust": "믿는",
+                    "surprise": "놀라운",
+                    "disgust": "싫은",
+                    "fear": "두려운",
+                    "anger": "화",
+                    "sadness": "슬픈"
+                }
 
           # encode them
           encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
-
-          key_mapping = {
-            "joy": "▁행복한",
-            "anticipation": "▁기대",
-            "trust": "▁신뢰",
-            "surprise": "▁놀라운",
-            "disgust": "▁싫어",
-            "fear": "겁",
-            "anger": "▁화",
-            "sadness": "▁눈물"
-          }
+        
 
           # add labels
           if examples["output"] != "":

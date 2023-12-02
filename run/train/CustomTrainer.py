@@ -15,8 +15,8 @@ class CustomTrainer(Trainer):
             )
 
 
-# 꼬링크, test2, 수댕이, 갸라도스
-    class CustomTrainer(Trainer):
+# 꼬링크, 럭시오, 수댕이, 갸라도스
+class CustomTrainer(Trainer):
         def create_optimizer_and_scheduler(self, num_training_steps: int):
             self.optimizer = AdamW([
             {'params': self.model.model.parameters(), 'lr': args.learning_rate, 'weight_decay': args.weight_decay},  # 1e-5, 5e-4

@@ -15,7 +15,7 @@ run
     ├── inference.py
     └── ensemble.py
 
-└── train  # 모델 학습
+└── train  # 단일 모델 학습
     ├── train.py
     └── LSTM_attention.py
     └── threshold_optimization.py

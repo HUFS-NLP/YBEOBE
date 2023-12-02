@@ -29,7 +29,7 @@ from run.LSTM_attention import LSTM_attention, LSTM_multitask, loss_function
 parser = argparse.ArgumentParser(prog="train", description="Train Table to Text with BART")
 
 g = parser.add_argument_group("Common Parameter")
-g.add_argument("--output-dir", type=str, default="/home/nlpgpu7/ellt/eojin/EA/", help="output directory path to save artifacts")
+g.add_argument("--output-dir", type=str, default="/YBEOBE/models/", help="output directory path to save artifacts")
 g.add_argument("--model-path", type=str, default="beomi/KcELECTRA-base-v2022", help="model file path")
 g.add_argument("--tokenizer", type=str, default="beomi/KcELECTRA-base-v2022", help="huggingface tokenizer path")
 g.add_argument("--max-seq-len", type=int, default=218, help="max sequence length")
@@ -40,7 +40,7 @@ g.add_argument("--epochs", type=int, default=30, help="the numnber of training e
 g.add_argument("--learning-rate", type=float, default=4e-5, help="max learning rate")
 g.add_argument("--weight-decay", type=float, default=0.01, help="weight decay")
 g.add_argument("--seed", type=int, default=42, help="random seed")
-g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassification", help="or LSTM_attention or LSTM_multitask or loss_function")
+g.add_argument("--model-choice", type=str, default="AutoModelForSequenceClassification", help="or LSTM_attention or SpanEMO")
 
 
 def main(args):
@@ -71,9 +71,9 @@ def main(args):
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     logger.info(f'[+] Load Dataset')
-    train_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-combined.jsonl")
-    valid_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/1434.jsonl")
-    test_ds = Dataset.from_json("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
+    train_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-train.jsonl")
+    valid_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-dev.jsonl")
+    test_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
 
     labels = list(train_ds["output"][0].keys())
     id2label = {idx:label for idx, label in enumerate(labels)}
@@ -123,15 +123,6 @@ def main(args):
     encoded_test_ds = test_ds.map(preprocess_data, remove_columns=train_ds.column_names)
 
     logger.info(f'[+] Load Model from "{args.model_path}"')
-
-
-    # config = AutoConfig.from_pretrained(args.model_path)
-    # config.output_hidden_states = True
-    # config.problem_type = "multi_label_classification"
-    # config.num_labels = len(labels)
-    # config.id2label = id2label
-    # config.label2id = label2id
-   
         
     model_choices = {
                     "LSTM_attention": LSTM_attention,
@@ -157,21 +148,11 @@ def main(args):
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
         args.model_path, 
-        # config=config
         problem_type="multi_label_classification",
         num_labels=len(labels),
         id2label=id2label,
         label2id=label2id
         )
-
-
-    # def custom_optimizer(model):  # 나중에 모델 별로 학습률 다르게 할 때 추가
-    #     return Adam([
-    #         {'params': model.model.parameters(), 'lr': 1e-5},  # 사전학습된 모델
-    #         {'params': model.bi_lstm.parameters(), 'lr': 1e-3},  # 양방향 LSTM
-    #         {'params': model.linear.parameters(), 'lr': 1e-3}  # 선형 레이어
-    #     ])
-    
 
     targs = TrainingArguments(
         output_dir=args.output_dir,
@@ -233,24 +214,24 @@ def main(args):
                 targs,
                 compute_metrics=compute_metrics
             )
-        
-        
+            
+            
             # 각 클래스별 임계값 설정
             threshold_dict = {
-                0: 0.5, #joy
-                1: 0.5, #anticipation
-                2: 0.5, #trust
-                3: 0.5, #surprise
-                4: 0.5, #disgust
-                5: 0.5, #fear
-                6: 0.5, #anger
-                7: 0.5 #sadness
+                0: 0.24, #joy
+                1: 0.77, #anticipation
+                2: 0.12, #trust
+                3: 0.729, #surprise
+                4: 0.99, #disgust
+                5: 0.78, #fear
+                6: 0.09, #anger
+                7: 0.95 #sadness
             }
             # 예측값에 시그모이드 함수 적용
             predictions, label_ids, _ = trainer.predict(test_dataset)
             sigmoid = torch.nn.Sigmoid()
             threshold_values = sigmoid(torch.Tensor(predictions))
-
+            
             # 각 클래스별로 임계값 적용하여 outputs 생성
             outputs = []
             for thresholded in threshold_values:
@@ -261,14 +242,14 @@ def main(args):
 
             # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
 
-            j_list = jsonlload("//home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
-
+            j_list = jsonlload("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
+            
             for idx, oup in enumerate(outputs):
                 j_list[idx]["output"] = {}
-
+            
                 # oup에서 True 또는 1인 값의 개수를 확인
                 true_count = sum(oup)
-
+            
                 if true_count >= 4:
                     # threshold_values의 상위 3개 인덱스를 찾음
                     top_three_indices = np.argsort(threshold_values[idx])[-3:]
@@ -277,71 +258,18 @@ def main(args):
                     # 상위 3개 인덱스만 True로 설정
                     for top_idx in top_three_indices:
                         oup[top_idx] = True
-                            
+                    
                 elif not any(oup):
                     max_index = threshold_values[idx].argmax().item()
                     oup[max_index] = True
 
                 for jdx, v in enumerate(oup):
-                    j_list[idx]["output"][id2label[jdx]] = ["True" if v else "False", threshold_values[idx][jdx].item()]
-
-            jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
-            
-            
-            # # 각 클래스별 임계값 설정
-            # threshold_dict = {
-            #     0: 0.24, #joy
-            #     1: 0.77, #anticipation
-            #     2: 0.12, #trust
-            #     3: 0.729, #surprise
-            #     4: 0.99, #disgust
-            #     5: 0.78, #fear
-            #     6: 0.09, #anger
-            #     7: 0.95 #sadness
-            # }
-            # # 예측값에 시그모이드 함수 적용
-            # predictions, label_ids, _ = trainer.predict(test_dataset)
-            # sigmoid = torch.nn.Sigmoid()
-            # threshold_values = sigmoid(torch.Tensor(predictions))
-            
-            # # 각 클래스별로 임계값 적용하여 outputs 생성
-            # outputs = []
-            # for thresholded in threshold_values:
-            #     output = []
-            #     for jdx, value in enumerate(thresholded):
-            #         output.append(float(value) >= threshold_dict.get(jdx, 0.5))
-            #     outputs.append(output)
-
-            # # outputs는 이제 각 예측에 대해 8개의 클래스별 boolean 값을 포함한 리스트가 됩니다.
-
-            # j_list = jsonlload("/home/nlpgpu7/ellt/dkyo/base_edit/resource/data/nikluge-ea-2023-test_m.jsonl")
-            
-            # for idx, oup in enumerate(outputs):
-            #     j_list[idx]["output"] = {}
-            
-            #     # oup에서 True 또는 1인 값의 개수를 확인
-            #     true_count = sum(oup)
-            
-            #     if true_count >= 4:
-            #         # threshold_values의 상위 3개 인덱스를 찾음
-            #         top_three_indices = np.argsort(threshold_values[idx])[-3:]
-            #         # oup를 모두 False로 초기화
-            #         oup = [False] * len(oup)
-            #         # 상위 3개 인덱스만 True로 설정
-            #         for top_idx in top_three_indices:
-            #             oup[top_idx] = True
-                    
-            #     elif not any(oup):
-            #         max_index = threshold_values[idx].argmax().item()
-            #         oup[max_index] = True
-
-            #     for jdx, v in enumerate(oup):
-            #         if v:
-            #             j_list[idx]["output"][id2label[jdx]] = "True"
-            #         else:
-            #             j_list[idx]["output"][id2label[jdx]] = "False"
+                    if v:
+                        j_list[idx]["output"][id2label[jdx]] = "True"
+                    else:
+                        j_list[idx]["output"][id2label[jdx]] = "False"
         
-            # jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
+            jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
             
     
 

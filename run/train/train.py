@@ -68,7 +68,7 @@ def main(args):
 
     logger.info(f'[+] Load Dataset')
     train_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-train.jsonl")
-    valid_ds = Dataset.from_json("/YBEOBE/data//nikluge-ea-2023-dev.jsonl")
+    valid_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-dev.jsonl")
     test_ds = Dataset.from_json("/YBEOBE/data/nikluge-ea-2023-test.jsonl")
 
     labels = list(train_ds["output"][0].keys())

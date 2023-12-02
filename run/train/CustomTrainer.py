@@ -4,7 +4,7 @@ from transformers import (
     get_linear_schedule_with_warmup,
     )
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from train.ASL import *
+from train.ASL_loss import *
 
 
 # learning rate와 weight decay 다르게 설정

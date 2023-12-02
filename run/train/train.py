@@ -108,21 +108,21 @@ def main(args):
                     "sadness": "슬픈"
                 }
 
-          # encode them
-          encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
+            # encode them
+            encoding = tokenizer(text1, text2, padding="max_length", truncation=True, max_length=args.max_seq_len)
         
 
-          # add labels
-          if examples["output"] != "":
-              encoding["labels"] = [0.0] * len(labels)
-              for key in key_mapping:
-                  if examples["output"][key] == 'True':
-                      encoding["labels"][label2id[key_mapping[key]]] = 1.0
+            # add labels
+            if examples["output"] != "":
+                encoding["labels"] = [0.0] * len(labels)
+                for key in key_mapping:
+                    if examples["output"][key] == 'True':
+                        encoding["labels"][label2id[key_mapping[key]]] = 1.0
 
-          # 감정레이블의 인덱스 구하기
-          input_ids = encoding['input_ids']
-          encoding['label_idxs'] = [tokenizer.convert_ids_to_tokens(input_ids).index(labels[idx])
-                                    for idx, _ in enumerate(labels)]
+            # 감정레이블의 인덱스 구하기
+            input_ids = encoding['input_ids']
+            encoding['label_idxs'] = [tokenizer.convert_ids_to_tokens(input_ids).index(labels[idx])
+                                      for idx, _ in enumerate(labels)]
 
         else:
           # take a batch of texts

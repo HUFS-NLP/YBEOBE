@@ -318,6 +318,7 @@ def main(args):
                         j_list[idx]["output"][id2label[jdx]] = "False"
         
             jsonldump(j_list, os.path.join(args.output_dir, f"test_predictions_epoch_{state.epoch}.jsonl"))
+            # torch.save(model.state_dict(), f"{args.output_dir}epoch_{state.epoch}_model_path_pretrained.pth")  # pth 파일로 모델 저장장
 
 
     trainer_class = LossFunctionTrainer if args.model_choice == "ASL_loss" else Trainer
